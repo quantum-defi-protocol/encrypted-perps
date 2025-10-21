@@ -1,0 +1,13 @@
+node_modules/
+artifacts/
+cache/
+.env
+/.vscode
+.DS_Store
+.idea/
+/.cache
+coverage/
+*.log
+dist/
+build/
+package-lock.json
