@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confidential Perp DEX - Privacy-Preserving Perpetual Trading</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <h1>🔐 Confidential Perp DEX</h1>
+                <p class="tagline">Fully Encrypted Perpetual Futures Trading</p>
+            </div>
+            <div class="wallet-section">
+                <div id="networkStatus" class="network-status">
+                    <span class="status-dot"></span>
+                    <span id="networkName">Not Connected</span>
+                </div>
+                <button id="connectWallet" class="btn btn-primary">Connect Wallet</button>
+                <div id="walletInfo" class="wallet-info hidden">
+                    <span id="walletAddress"></span>
+                    <button id="disconnectWallet" class="btn btn-secondary">Disconnect</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Demo Mode Banner -->
+        <div class="demo-banner" id="demoBanner">
+            <div class="banner-content">
+                <span class="banner-icon">⚠️</span>
+                <div class="banner-text">
+                    <strong>Demo Mode</strong> - Zama devnet currently unavailable. Configure contract address when network is ready.
+                </div>
+                <button id="configureContract" class="btn btn-sm btn-outline">⚙️ Configure</button>
+            </div>
+        </div>
+
+        <!-- Privacy Notice -->
+        <div class="privacy-notice">
+            <div class="notice-icon">🛡️</div>
+            <div class="notice-content">
+                <h3>Privacy-First Trading</h3>
+                <p>Your balances, positions, and orders are encrypted using Zama's FHE technology. No one can see your trading activity on-chain.</p>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <nav class="nav-tabs">
+                    <button class="tab-btn active" data-tab="deposit">Deposit</button>
+                    <button class="tab-btn" data-tab="trade">Trade</button>
+                    <button class="tab-btn" data-tab="positions">Positions</button>
+                    <button class="tab-btn" data-tab="orders">Orders</button>
+                </nav>
+
+                <!-- Account Info -->
+                <div class="account-info">
+                    <h3>Account Balance</h3>
+                    <div class="balance-display">
+                        <div class="balance-label">Encrypted Balance</div>
+                        <div id="encryptedBalance" class="balance-value">--</div>
+                        <button id="decryptBalance" class="btn btn-sm btn-outline">Decrypt & View</button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Content Area -->
+            <main class="content-area">
+                <!-- Deposit Tab -->
+                <section id="depositTab" class="tab-content active">
+                    <div class="card">
+                        <h2>Deposit Funds</h2>
+                        <p class="card-description">Deposit funds into your encrypted account. The amount will be encrypted before sending to the contract.</p>
+
+                        <form id="depositForm" class="form">
+                            <div class="form-group">
+                                <label for="depositAmount">Amount</label>
+                                <div class="input-group">
+                                    <input type="number" id="depositAmount" placeholder="0.00" step="0.01" min="0" required>
+                                    <span class="input-suffix">USDC</span>
+                                </div>
+                                <small class="form-hint">This amount will be encrypted before deposit</small>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-block">
+                                🔒 Encrypt & Deposit
+                            </button>
+                        </form>
+
+                        <div class="encryption-status hidden" id="depositStatus">
+                            <div class="status-message"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Trade Tab -->
+                <section id="tradeTab" class="tab-content">
+                    <div class="card">
+                        <h2>Open Position</h2>
+                        <p class="card-description">Open a leveraged long or short position. Position size will be encrypted.</p>
+
+                        <form id="tradeForm" class="form">
+                            <div class="position-type-selector">
+                                <button type="button" class="position-btn long-btn active" data-type="long">
+                                    📈 LONG
+                                </button>
+                                <button type="button" class="position-btn short-btn" data-type="short">
+                                    📉 SHORT
+                                </button>
+                            </div>
+
+                            <input type="hidden" id="positionType" value="true">
+
+                            <div class="form-group">
+                                <label for="positionSize">Position Size</label>
+                                <div class="input-group">
+                                    <input type="number" id="positionSize" placeholder="0.00" step="0.01" min="0" required>
+                                    <span class="input-suffix">BTC</span>
+                                </div>
+                                <small class="form-hint">🔒 Encrypted</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="leverage">Leverage</label>
+                                <div class="leverage-selector">
+                                    <input type="range" id="leverage" min="1" max="20" value="5" step="1">
+                                    <div class="leverage-display">
+                                        <span id="leverageValue">5</span>x
+                                    </div>
+                                </div>
+                                <small class="form-hint">⚠️ Public (not encrypted)</small>
+                            </div>
+
+                            <div class="risk-management-section">
+                                <h4 class="section-title">Risk Management (Optional)</h4>
+
+                                <div class="form-group">
+                                    <label for="stopLoss">
+                                        Stop Loss Price
+                                        <span class="tooltip-icon" title="Position will auto-close if price reaches this level to limit losses">ℹ️</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="number" id="stopLoss" placeholder="0.00 (optional)" step="0.01" min="0">
+                                        <span class="input-suffix">USD</span>
+                                    </div>
+                                    <small class="form-hint">🔒 Encrypted | Leave empty to skip</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="takeProfit">
+                                        Take Profit Price
+                                        <span class="tooltip-icon" title="Position will auto-close if price reaches this level to lock in profits">ℹ️</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="number" id="takeProfit" placeholder="0.00 (optional)" step="0.01" min="0">
+                                        <span class="input-suffix">USD</span>
+                                    </div>
+                                    <small class="form-hint">🔒 Encrypted | Leave empty to skip</small>
+                                </div>
+
+                                <div class="sl-tp-summary" id="slTpSummary">
+                                    <div class="summary-item">
+                                        <span class="summary-label">Risk/Reward Ratio:</span>
+                                        <span id="riskRewardRatio" class="summary-value">--</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="position-summary">
+                                <div class="summary-row">
+                                    <span>Position Value</span>
+                                    <span id="positionValue">--</span>
+                                </div>
+                                <div class="summary-row">
+                                    <span>Required Collateral</span>
+                                    <span id="requiredCollateral">--</span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-block">
+                                🔒 Encrypt & Open Position
+                            </button>
+                        </form>
+
+                        <div class="encryption-status hidden" id="tradeStatus">
+                            <div class="status-message"></div>
+                        </div>
+                    </div>
+
+                    <!-- Order Form -->
+                    <div class="card" style="margin-top: 2rem;">
+                        <h2>Place Limit Order</h2>
+                        <p class="card-description">Place an encrypted limit order. Both price and size are encrypted.</p>
+
+                        <form id="orderForm" class="form">
+                            <div class="position-type-selector">
+                                <button type="button" class="order-btn buy-btn active" data-type="buy">
+                                    💚 BUY
+                                </button>
+                                <button type="button" class="order-btn sell-btn" data-type="sell">
+                                    ❤️ SELL
+                                </button>
+                            </div>
+
+                            <input type="hidden" id="orderType" value="true">
+
+                            <div class="form-group">
+                                <label for="orderPrice">Limit Price</label>
+                                <div class="input-group">
+                                    <input type="number" id="orderPrice" placeholder="0.00" step="0.01" min="0" required>
+                                    <span class="input-suffix">USDC</span>
+                                </div>
+                                <small class="form-hint">🔒 Encrypted</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="orderSize">Order Size</label>
+                                <div class="input-group">
+                                    <input type="number" id="orderSize" placeholder="0.00" step="0.01" min="0" required>
+                                    <span class="input-suffix">BTC</span>
+                                </div>
+                                <small class="form-hint">🔒 Encrypted</small>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-block">
+                                🔒 Encrypt & Place Order
+                            </button>
+                        </form>
+
+                        <div class="encryption-status hidden" id="orderStatus">
+                            <div class="status-message"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Positions Tab -->
+                <section id="positionsTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>My Positions</h2>
+                            <button id="refreshPositions" class="btn btn-sm btn-outline">🔄 Refresh</button>
+                        </div>
+
+                        <div id="positionsList" class="positions-list">
+                            <div class="empty-state">
+                                <div class="empty-icon">📊</div>
+                                <p>No open positions</p>
+                                <small>Open a position in the Trade tab</small>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Orders Tab -->
+                <section id="ordersTab" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Order Book</h2>
+                            <button id="refreshOrders" class="btn btn-sm btn-outline">🔄 Refresh</button>
+                        </div>
+
+                        <div class="order-book">
+                            <div class="order-book-stats">
+                                <div class="stat">
+                                    <span class="stat-label">Total Orders</span>
+                                    <span id="totalOrders" class="stat-value">0</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-label">Buy Orders</span>
+                                    <span id="buyOrders" class="stat-value">0</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-label">Sell Orders</span>
+                                    <span id="sellOrders" class="stat-value">0</span>
+                                </div>
+                            </div>
+
+                            <div id="ordersList" class="orders-list">
+                                <div class="empty-state">
+                                    <div class="empty-icon">📋</div>
+                                    <p>No orders in the book</p>
+                                    <small>Place an order in the Trade tab</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>About</h4>
+                    <p>Confidential Perp DEX uses Zama's fhEVM for fully encrypted trading</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Privacy</h4>
+                    <ul>
+                        <li>✅ Encrypted balances</li>
+                        <li>✅ Encrypted positions</li>
+                        <li>✅ Encrypted orders</li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://docs.zama.ai/fhevm" target="_blank">Zama Docs</a></li>
+                        <li><a href="https://github.com" target="_blank">GitHub</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>⚠️ Proof of Concept - Not for production use</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-spinner"></div>
+        <p id="loadingMessage">Processing...</p>
+    </div>
+
+    <!-- Contract Configuration Modal -->
+    <div id="configModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ Contract Configuration</h2>
+                <button id="closeModal" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="contractAddressInput">Contract Address</label>
+                    <input
+                        type="text"
+                        id="contractAddressInput"
+                        placeholder="0x..."
+                        class="config-input"
+                        pattern="^0x[a-fA-F0-9]{40}$"
+                    >
+                    <small class="form-hint">Enter the deployed ConfidentialPerpDEX contract address</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="networkSelect">Network</label>
+                    <select id="networkSelect" class="config-input">
+                        <option value="zama">Zama Devnet (Chain ID: 9000)</option>
+                        <option value="localhost">Localhost (Chain ID: 31337)</option>
+                        <option value="custom">Custom Network</option>
+                    </select>
+                </div>
+
+                <div id="customNetworkFields" class="form-group hidden">
+                    <label for="customRpcUrl">Custom RPC URL</label>
+                    <input
+                        type="url"
+                        id="customRpcUrl"
+                        placeholder="https://..."
+                        class="config-input"
+                    >
+                    <label for="customChainId" style="margin-top: 1rem;">Chain ID</label>
+                    <input
+                        type="number"
+                        id="customChainId"
+                        placeholder="9000"
+                        class="config-input"
+                    >
+                </div>
+
+                <div class="network-status-info">
+                    <h4>Current Configuration:</h4>
+                    <div class="config-info">
+                        <div><strong>Contract:</strong> <span id="currentContract">Not set</span></div>
+                        <div><strong>Network:</strong> <span id="currentNetwork">Zama Devnet</span></div>
+                        <div><strong>Status:</strong> <span id="contractStatus" class="status-badge status-pending">Not connected</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="testConnection" class="btn btn-secondary">Test Connection</button>
+                <button id="saveConfig" class="btn btn-primary">Save Configuration</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
